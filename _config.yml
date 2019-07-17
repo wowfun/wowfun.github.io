@@ -1,0 +1,13 @@
+# General Jekyll Config
+title: Sinputer's Personal Site
+author: Sinputer (Wowfun)
+email: haggi.cho@outlook.com
+description: > 
+  Sharing my harvest and thinking.
+
+# personal links
+github_username:  https://github.com/wowfun
+
+show_excerpts: true
+
+theme: jekyll-theme-minimal
