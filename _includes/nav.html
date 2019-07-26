@@ -35,8 +35,19 @@
         </div>
         <!-- /.navbar-collapse -->
     </div>
+
+    <div id="search-container"
+    style="float:right;position: fixed;right:10px;">
+    <input type="text" id="search-input" placeholder="search..."
+        style="border:2px solid;border-radius:25px;padding-left:10px !important;">
+    <ul id="results-container" style="max-width:300px; background: white;" ></ul>
+</div>
     <!-- /.container -->
 </nav>
+
+<!-- script pointing to jekyll-search.js-->
+<script src="{{ site.baseurl }}/js/simple-jekyll-search.min.js"></script>
+
 <script>
     // Drop Bootstarp low-performance Navbar
     // Use customize navbar with high-quality material design animation
@@ -88,4 +99,15 @@
         if(e.target.className == 'icon-bar') return;
         __HuxNav__.close();
     })
+
+    window.simpleJekyllSearch = new SimpleJekyllSearch({
+        searchInput: document.getElementById('search-input'),
+        resultsContainer: document.getElementById('results-container'),
+        json: '{{ site.baseurl }}/search.json',
+        searchResultTemplate: '<li><a href="{url}" title="{desc}">{title}</a></li>',
+        noResultsText: 'No results found',
+        limit: 5,
+        fuzzy: false,
+        exclude: ['Welcome']
+      })
 </script>
