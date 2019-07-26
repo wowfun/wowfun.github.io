@@ -14,8 +14,9 @@ tags:
 
 > `CSDN` -> `WordPress on Aliyun` -> `GitHub Pages`
 
-历经周折，终于还是打算从`阿里云`迁到`GitHub`上，从`WorldPress`转到`Jekyll`。 \
-原因有许多，主要有以下几点： \
+历经周折，终于还是打算从`阿里云`迁到`GitHub`上，从`WorldPress`转到`Jekyll`。
+
+原因有许多，主要有以下几点：
 
 - 迁到GitHub上更方便托管。
 - 可以与其他项目的`GitHub Pages`联动、衔接。
