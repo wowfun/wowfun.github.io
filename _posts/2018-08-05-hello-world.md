@@ -21,7 +21,8 @@ tags:
 - 可以与其他项目的`GitHub Pages`联动、衔接。
 - `GitHub Pages`的种种优势，如免费、无限空间等等。
 
-今后就在`GitHub Pages`上更新动态了。 \
+今后就在`GitHub Pages`上更新动态了。
+
 **P.S** 为了维持之前动态的时间线的正常，这篇的时间线是原Post。原内容如下。
 
 ## 原文内容
