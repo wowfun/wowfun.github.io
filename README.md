@@ -4,3 +4,10 @@ Click [http://sinputer.top/](http://sinputer.top/) or [https://wowfun.github.io/
 
 Powered by [Jekyll](https://jekyllrb.com/) & [Hux](http://huangxuan.me/). \
 Hosted by [GitHub](https://github.com/).
+
+## TODO
+
+## Log
+
+2019.07.27
+> add search bar
