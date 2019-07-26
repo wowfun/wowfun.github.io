@@ -5,7 +5,7 @@ header-img: img/home-bg.jpg
 email: haggi.cho@outlook.com
 description: "分享所学所想，所见所闻"
 keyword: "Sinputer, Wowfun, 无锋, Sinputer无锋, 无锋的博客, Sinputer's Site, 博客, 个人网站, Machine Learning, Deep Learning, Data Science, Data Mining"
-url: "https://sinputer.top"              # your host, for absolute URL
+url: "http://sinputer.top"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
 
 # Publish posts or collection documents with a future date.
