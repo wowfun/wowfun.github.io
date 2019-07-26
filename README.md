@@ -1,5 +1,6 @@
-# Sinputer's Personal Site Repo
+# Sinputer's Site
 
-Click [here](https://wowfun.github.io/) to visit my personal site.
+Click [https://wowfun.github.io/](https://wowfun.github.io/) to visit my personal site.
 
-Powered by [GitHub Pages](https://pages.github.com/).
+Powered by [Jekyll](https://jekyllrb.com/).
+Hosted by [GitHub](https://github.com/).
