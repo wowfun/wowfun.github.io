@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "RuntimeError: CUDA error: unknown error"
-subtitle: ""
+subtitle: "Debug this error"
 date: 2019-07-28
 author: "Sinputer"
 catalog: true
