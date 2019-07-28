@@ -9,5 +9,8 @@ Hosted by [GitHub](https://github.com/).
 
 ## Log
 
+2019.07.28
+> add a script `tools/create_init_new_post.sh` to create a inited post.
+
 2019.07.27
 > add search bar
