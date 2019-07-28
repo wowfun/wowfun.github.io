@@ -27,6 +27,7 @@ function main(){
   echo "subtitle: \"\"" >> $post_file_path
   echo "date: "$fm_date"" >> $post_file_path
   echo "author: \"$fm_author\"" >> $post_file_path
+  echo "catalog: true" >> $post_file_path
   echo "tags: " >> $post_file_path
   echo "    - " >> $post_file_path
   echo "---" >> $post_file_path
