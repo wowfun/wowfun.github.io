@@ -66,9 +66,9 @@ netease_comment: false
 
 
 # TODO
-# # Analytics settings
-# # Baidu Analytics 
-# # ba_track_id: [your track id]
+# Analytics settings
+# Baidu Tongji
+ba_track_id: 175db7d33b49373dad1564e35cf9eb23
 
 # # Google Analytics
 # ga_track_id: 'UA-49627206-1'            # Format: UA-xxxxxx-xx
