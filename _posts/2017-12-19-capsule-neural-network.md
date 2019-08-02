@@ -38,21 +38,28 @@ $$\mathbf{v}_{j}=\frac{\left\|\mathbf{s}_{j}\right\|^{2}}{1+\left\|\mathbf{s}_{j
 
 $$\hat{u}_{j \vert i}=W_{i j} u_{i}$$
 
-向量 $\hat{u}_{j \vert i}$ 是向量 $u_i$ 的线性组合
+向量 $\hat{u}_{j \vert i}$ 是向量 $u_i$ 的线性组合。
 
 向量 $W_{i j}$ 可以理解为控制 i 层到 j 层的传递强度（向量型的权重）。使得前一层的输出以不同强度传递到下一层。
 
 $$s_{j}=\sum_{i} c_{i j} \hat{u}_{j \vert i}$$
 
-通过对 $\hat{u}_{j \vert i}$ 的加权 $c_{i j}$ 、求和运算得到 $s_j$ （第 j 层的输入向量）。
+通过对 $\hat{u}_{j \vert i}$ 
+的加权 $c_{i j}$ 、求和运算得到 $s_j$ （第 j 层的输入向量）。
 
 **耦合系数（coupling coefficients）$c_{i j}$**由动态 Routing 过程迭代地更新与确定。上层和下层级所有 Capsule 间的耦合系数和为 1 。
 它由*routing softmax*决定，且 softmax 函数中的 logits $b_{i j}$ 初始化为 0。更新公式为
 
 $$c_{i j}=\frac{\exp \left(b_{i j}\right)}{\sum_{k} \exp \left(b_{i k}\right)}$$
 
-$b_{i j}$ 依赖于两个 Capsule 的位置与类型，但不依赖于当前的输入图像。我们可以通过测量后面层级中每一个 Capsule j 的当前输出 $v_j$ 和 前面层级 Capsule i 的预测向量间的一致性，然后借助该测量的一致性迭代地更新耦合系数。本论文简单地通过内积度量这种一致性，即 $a_{i j}=\mathbf{v}_{j} \cdot \hat{\mathbf{u}}_{j \vert i}$ ，这一部分也就涉及到使用 Routing 更新耦合系数。
-我们会计算 $v_j$ 与 $\hat{u}_{j \vert i}$ 的乘积并将它与原来的 $b_{i j}$ 相加而更新 $b_{i j}$，然后利用 softmax($b_{i j}$) 更新 $c_{i j}$ 而进一步修正了后一层的 Capsule 输入 $s_j$ 。当输出新的 $v_j$ 后又可以迭代地更新 $c_{i j}$，这样我们不需要反向传播而直接通过计算输入与输出的一致性更新参数。
+$b_{i j}$ 依赖于两个 Capsule 的位置与类型，但不依赖于当前的输入图像。我们可以通过测量后面层级中每一个 Capsule j 的当前输出 $v_j$ 和 前面层级 Capsule i 的预测向量间的一致性，
+然后借助该测量的一致性迭代地更新耦合系数。
+本论文简单地通过内积度量这种一致性，
+即 $a_{i j}=\mathbf{v}_{j} \cdot \hat{\mathbf{u}}_{j \vert i}$ ，这一部分也就涉及到使用 Routing 更新耦合系数。
+我们会计算 $v_j$ 与 $\hat{u}_{j \vert i}$ 的乘积并将它与原来的 $b_{i j}$ 相加而更新 $b_{i j}$，
+然后利用 softmax($b_{i j}$) 更新 $c_{i j}$ 而进一步修正了后一层的 Capsule 输入 $s_j$ 。
+当输出新的 $v_j$ 后又可以迭代地更新 $c_{i j}$，
+这样我们不需要反向传播而直接通过计算输入与输出的一致性更新参数。
 
 #### 流程
 
@@ -94,10 +101,7 @@ Capsule 更加追求 Equivariance 。
 
 ## Ref
 
-<https://www.zhihu.com/question/67287444/answer/251241736>
-
-<https://www.jiqizhixin.com/articles/2017-11-05>
-
-srcPaper *Dynamic Routing Between Capsules* : <https://arxiv.org/abs/1710.09829>
-
+<https://www.zhihu.com/question/67287444/answer/251241736>  
+<https://www.jiqizhixin.com/articles/2017-11-05>  
+srcPaper *Dynamic Routing Between Capsules* : <https://arxiv.org/abs/1710.09829>  
 srcCode ：<https://github.com/naturomics/CapsNet-Tensorflow>
