@@ -42,9 +42,9 @@ $$\hat{u}_{j|i}=W_{i j} u_{i}$$
 
 向量 $W_{i j}$ 可以理解为控制 i 层到 j 层的传递强度（向量型的权重）。使得前一层的输出以不同强度传递到下一层。
 
-$$s_{j}=\sum_{i} c_{i j} \hat{u}_{j\|i}$$
+$$s_{j}=\sum_{i} c_{i j} \hat{u}_{j|i}$$
 
-通过对 $\hat{u}_{j|i}$ 的加权 ($c_{i j}$) 、求和运算得到 $s_j$ （第 j 层的输入向量）。
+通过对 $\hat{u}_{j\|i}$ 的加权 ($c_{i j}$) 、求和运算得到 $s_j$ （第 j 层的输入向量）。
 
 **耦合系数（coupling coefficients）$c_{i j}$**由动态 Routing 过程迭代地更新与确定。上层和下层级所有 Capsule 间的耦合系数和为 1 。
 它由*routing softmax*决定，且 softmax 函数中的 logits $b_{i j}$ 初始化为 0。更新公式为
