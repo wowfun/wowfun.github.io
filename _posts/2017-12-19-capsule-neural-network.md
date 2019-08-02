@@ -38,11 +38,11 @@ $$\mathbf{v}_{j}=\frac{\left\|\mathbf{s}_{j}\right\|^{2}}{1+\left\|\mathbf{s}_{j
 
 $$\hat{u}_{j|i}=W_{i j} u_{i}$$
 
-向量 $\hat{u}_{j|i}$ 是向量 $u_i$ 的线性组合
+向量 `$\hat{u}_{j|i}$` 是向量 $u_i$ 的线性组合
 
 向量 $W_{i j}$ 可以理解为控制 i 层到 j 层的传递强度（向量型的权重）。使得前一层的输出以不同强度传递到下一层。
 
-$$s_{j}=\sum_{i} c_{i j} \hat{u}_{j|i}$$
+$$s_{j}=\sum_{i} c_{i j} \hat{u}_{j\|i}$$
 
 通过对 $\hat{u}_{j|i}$ 的加权 ($c_{i j}$) 、求和运算得到 $s_j$ （第 j 层的输入向量）。
 
