@@ -1,1 +1,4 @@
+bundle install # by Gemfile
+bundle update  # by Gemfile
 bundle exec jekyll serve
+jekyll new . --force  # reinit this site
