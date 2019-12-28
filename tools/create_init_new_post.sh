@@ -1,10 +1,11 @@
 #! /bin/bash
 # Author: Sinputer
 
-# Create a new named .md post and init it. Default post date is the exec date of this script.
-# $1: post name without date, eg. "Hello World"
-# [$2]: optional, custom this post's date, eg. "1970-01-01"
-# eg. YYYY-MM-DD-POSTNAME
+# Create a new named .md post and init it. Like YYYY-MM-DD-POSTNAME
+# $1: post name without date. Default post date is the exec date of this script.
+# eg. ./tools/create_init_new_post.sh "Hello World"
+# [$2]: optional, custom this post's date
+# eg. ./tools/create_init_new_post.sh "Hello World" "1970-01-01"
 
 function main(){
   cd `dirname $0`
@@ -13,6 +14,9 @@ function main(){
   date_name="$2"
   if [[ -z "$date_name" ]];then
     date_name=`date "+%Y-%m-%d"`
+  fi
+  if [[ ! -e "../_drafts/" ]];then
+    mkdir "../_drafts/"
   fi
   post_file_path="../_drafts/"$date_name"-"$post_name".md"
 
