@@ -1,0 +1,29 @@
+# Host-repository overrides. The integration command only updates the marked lines.
+title: Sinputer's Site
+description: What I learn, think, see, and hear.
+lang: en
+
+website:
+  # jekyll-obsidian:managed-start
+  source: 'content'
+  theme: 'minimal'
+  # jekyll-obsidian:managed-end
+  syntax_profile: ofm@1
+  repository: wowfun/wowfun.github.io
+  edit_branch: master
+  content:
+    publish_by_default:
+      - "."
+    default_type: page
+    directories:
+      post:
+        - blog
+      doc: []
+  features: {}
+  contacts:
+    - label: GitHub
+      url: https://github.com/wowfun
+    - label: Twitter
+      url: https://twitter.com/wowfuna
+    - label: Email
+      url: mailto:haggi.cho@outlook.com
