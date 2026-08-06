@@ -17,6 +17,7 @@ website/bin/dev
 Run the same checks used by the generated Pages workflow with:
 
 ```sh
+(cd website && npx playwright install chromium)
 website/bin/integrate --check
 RUN_BROWSER_TESTS=1 website/bin/test
 JEKYLL_ENV=production website/bin/build \
