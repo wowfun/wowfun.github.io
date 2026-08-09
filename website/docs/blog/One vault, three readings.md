@@ -5,6 +5,11 @@ date: 2026-08-01
 tags:
   - release-notes
   - themes
+categories:
+  - themes
+  - Architecture
+related:
+  - "[[portfolio/jekyll-obsidian]]"
 description: Why Minimal and Docs share one compiler but not one layout.
 image: assets/research-folio.svg
 ---

@@ -25,6 +25,9 @@ interface VisualNode extends GraphNode, SimulationNodeDatum {
   dragStartX?: number;
   dragStartY?: number;
   dragged?: boolean;
+  labelSide?: -1 | 0 | 1;
+  labelHeight?: number;
+  labelWidth?: number;
 }
 
 interface VisualEdge extends SimulationLinkDatum<VisualNode> {
@@ -136,11 +139,17 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
     degree: node.degree ?? neighbours.get(node.id)?.size ?? 0
   }));
   const edges: VisualEdge[] = payload.edges.map((edge) => ({ ...edge }));
-  const width = Math.max(container.clientWidth, mode === "compact" ? 220 : 640);
-  const height = Math.max(container.clientHeight, mode === "compact" ? 210 : 480);
+  container.querySelector("[data-graph-canvas]")?.remove();
+  const canvas = document.createElement("div");
+  canvas.className = "graph-canvas";
+  canvas.dataset.graphCanvas = "";
+  container.prepend(canvas);
+
+  let width = canvas.clientWidth || (mode === "compact" ? 220 : 640);
+  let height = canvas.clientHeight || (mode === "compact" ? 210 : 480);
   const current = nodes.find((node) => node.id === currentId);
-  const centreX = width / 2;
-  const centreY = height / 2;
+  let centreX = width / 2;
+  let centreY = height / 2;
 
   nodes.forEach((node, index) => {
     if (node === current) {
@@ -148,6 +157,7 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
       node.y = centreY;
       node.fx = centreX;
       node.fy = centreY;
+      node.labelSide = 0;
       return;
     }
     const offset = current ? index - (nodes.indexOf(current) < index ? 1 : 0) : index;
@@ -156,13 +166,8 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
     const radius = Math.max(58, Math.min(width, height) * (mode === "compact" ? 0.31 : 0.36));
     node.x = centreX + Math.cos(angle) * radius;
     node.y = centreY + Math.sin(angle) * radius;
+    node.labelSide = Math.abs(Math.cos(angle)) < 0.1 ? 0 : Math.cos(angle) < 0 ? -1 : 1;
   });
-
-  container.querySelector("[data-graph-canvas]")?.remove();
-  const canvas = document.createElement("div");
-  canvas.className = "graph-canvas";
-  canvas.dataset.graphCanvas = "";
-  container.prepend(canvas);
 
   const identity = ++graphIdentity;
   const titleId = `website-graph-title-${identity}`;
@@ -243,6 +248,60 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
     .force("center", forceCenter(centreX, centreY));
 
   const position = () => {
+    let compactCurrentLabelX = 0;
+    if (mode === "compact") {
+      nodeLabels.each(function measureLabel(node) {
+        node.labelWidth = typeof this.getComputedTextLength === "function"
+          ? this.getComputedTextLength()
+          : node.title.length * 5.5;
+        node.labelHeight = this.getBoundingClientRect().height;
+      });
+      for (const node of nodes) {
+        const radius = nodeRadius(node.degree, mode);
+        const x = node.x ?? width / 2;
+        const y = node.y ?? height / 2;
+        const distance = radius + 4;
+        const labelWidth = node.labelWidth ?? 0;
+        let minimumX = radius + 4;
+        let maximumX = width - radius - 4;
+        if (node.labelSide === -1) minimumX = Math.max(minimumX, labelWidth + distance + 2);
+        if (node.labelSide === 1) maximumX = Math.min(maximumX, width - labelWidth - distance - 2);
+        if (node.labelSide === 0) {
+          minimumX = Math.max(minimumX, labelWidth / 2 + 1);
+          maximumX = Math.min(maximumX, width - labelWidth / 2 - 1);
+        }
+        const boundedX = minimumX <= maximumX
+          ? Math.max(minimumX, Math.min(maximumX, x))
+          : width / 2;
+        const labelClearance = radius + 16;
+        const boundedY = Math.max(labelClearance, Math.min(height - labelClearance, y));
+        if (boundedX !== x) node.vx = 0;
+        if (boundedY !== y) node.vy = 0;
+        node.x = boundedX;
+        node.y = boundedY;
+      }
+
+      if (current) {
+        const currentX = current.x ?? centreX;
+        const currentY = current.y ?? centreY;
+        const currentWidth = current.labelWidth ?? 0;
+        const currentHeight = current.labelHeight ?? 0;
+        let availableStart = 1;
+        let availableEnd = width - 1;
+        for (const node of nodes) {
+          if (node === current || node.labelSide === 0 ||
+            Math.abs((node.y ?? centreY) - currentY) >= ((node.labelHeight ?? 0) + currentHeight) / 2) continue;
+          const distance = nodeRadius(node.degree, mode) + 4;
+          if (node.labelSide === -1) availableStart = Math.max(availableStart, (node.x ?? centreX) - distance);
+          if (node.labelSide === 1) availableEnd = Math.min(availableEnd, (node.x ?? centreX) + distance);
+        }
+        const minimumCentre = availableStart + currentWidth / 2 + 2;
+        const maximumCentre = availableEnd - currentWidth / 2 - 2;
+        if (minimumCentre <= maximumCentre) {
+          compactCurrentLabelX = Math.max(minimumCentre, Math.min(maximumCentre, currentX)) - currentX;
+        }
+      }
+    }
     links
       .attr("x1", (edge) => (edge.source as VisualNode).x ?? 0)
       .attr("y1", (edge) => (edge.source as VisualNode).y ?? 0)
@@ -256,26 +315,37 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
       const gap = mode === "compact" ? 4 : 6;
       const distance = nodeRadius(node.degree, mode) + gap;
       if (node.id === currentId) {
-        label.attr("text-anchor", "start").attr("x", distance).attr("y", "0.32em");
+        if (mode === "compact") {
+          label.attr("text-anchor", "middle").attr("x", compactCurrentLabelX).attr("y", "0.32em");
+        } else {
+          label.attr("text-anchor", "start").attr("x", distance).attr("y", "0.32em");
+        }
         return;
       }
-      if (Math.abs(horizontal) < 0.1) {
+      if ((mode === "compact" && node.labelSide === 0) || (mode !== "compact" && Math.abs(horizontal) < 0.1)) {
         label
           .attr("text-anchor", "middle")
           .attr("x", 0)
           .attr("y", (node.y ?? centreY) < centreY ? -distance : distance + 6);
         return;
       }
-      let direction = horizontal < 0 ? -1 : 1;
-      const labelWidth = typeof this.getComputedTextLength === "function"
-        ? this.getComputedTextLength()
-        : node.title.length * (mode === "compact" ? 5.5 : 6);
-      const outwardEdge = x + direction * (distance + labelWidth);
-      if (outwardEdge < 4 || outwardEdge > width - 4) direction *= -1;
-      label
-        .attr("text-anchor", direction < 0 ? "end" : "start")
-        .attr("x", direction * distance)
-        .attr("y", "0.32em");
+      let direction = mode === "compact" ? node.labelSide ?? 1 : horizontal < 0 ? -1 : 1;
+      if (mode === "compact") {
+        label
+          .attr("text-anchor", "middle")
+          .attr("x", direction * (distance + (node.labelWidth ?? 0) / 2))
+          .attr("y", "0.32em");
+      } else {
+        const labelWidth = typeof this.getComputedTextLength === "function"
+          ? this.getComputedTextLength()
+          : node.title.length * 6;
+        const outwardEdge = x + direction * (distance + labelWidth);
+        if (outwardEdge < 4 || outwardEdge > width - 4) direction *= -1;
+        label
+          .attr("text-anchor", direction < 0 ? "end" : "start")
+          .attr("x", direction * distance)
+          .attr("y", "0.32em");
+      }
     });
   };
   position();
@@ -329,6 +399,37 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
   svg.call(zoomBehaviour);
   container.dataset.graphScale = "1";
 
+  let resizeFrame = 0;
+  const resizeObserver = new ResizeObserver(() => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      const nextWidth = canvas.clientWidth;
+      const nextHeight = canvas.clientHeight;
+      if (nextWidth <= 0 || nextHeight <= 0 ||
+        (Math.abs(nextWidth - width) < 1 && Math.abs(nextHeight - height) < 1)) return;
+
+      const offsetX = (nextWidth - width) / 2;
+      const offsetY = (nextHeight - height) / 2;
+      for (const node of nodes) {
+        node.x = (node.x ?? width / 2) + offsetX;
+        node.y = (node.y ?? height / 2) + offsetY;
+        if (node.fx != null) node.fx += offsetX;
+        if (node.fy != null) node.fy += offsetY;
+      }
+      width = nextWidth;
+      height = nextHeight;
+      centreX = width / 2;
+      centreY = height / 2;
+      svg.attr("viewBox", `0 0 ${width} ${height}`);
+      zoomBehaviour.extent([[0, 0], [width, height]]);
+      simulation.force("center", forceCenter(centreX, centreY));
+      if (reducedMotion()) simulation.stop();
+      else simulation.alpha(0.35).restart();
+      position();
+    });
+  });
+  resizeObserver.observe(canvas);
+
   const svgElement = svg.node();
   const preventOuterScroll = (event: WheelEvent) => event.preventDefault();
   svgElement?.addEventListener("wheel", preventOuterScroll, { passive: false });
@@ -347,6 +448,8 @@ function renderGraph(container: HTMLElement, payload: GraphPayload | LocalGraphP
 
   const dispose = () => {
     simulation.stop();
+    resizeObserver.disconnect();
+    cancelAnimationFrame(resizeFrame);
     svgElement?.removeEventListener("wheel", preventOuterScroll);
     container.dataset.graphDisposed = "true";
     instances.delete(container);

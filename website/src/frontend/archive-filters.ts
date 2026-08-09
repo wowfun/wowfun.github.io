@@ -10,7 +10,9 @@ function selectedValue(
 
 function applyFilters(root: HTMLElement): void {
   const parameters = new URLSearchParams(window.location.search);
-  const topicOptions = Array.from(document.querySelectorAll<HTMLElement>("[data-topic-filter-option]"));
+  const topicOptions = Array.from(document.querySelectorAll<HTMLElement>(
+    "[data-topic-filter-nav] [data-topic-filter-option]"
+  ));
   const yearOptions = Array.from(document.querySelectorAll<HTMLElement>("[data-year-filter-option]"));
   const monthOptions = Array.from(document.querySelectorAll<HTMLElement>("[data-month-filter-option]"));
   const topic = selectedValue(parameters, "topic", topicOptions, "topicAnchor");
@@ -71,10 +73,14 @@ export function initialiseArchiveFilters(): () => void {
       const topic = link.dataset.topicAnchor ?? "";
       topic ? next.searchParams.set("topic", topic) : next.searchParams.delete("topic");
     } else if (link.hasAttribute("data-year-filter-option")) {
-      next.searchParams.set("year", link.dataset.filterYear ?? "");
+      const year = link.dataset.filterYear ?? "";
+      if (link.getAttribute("aria-current") === "page") next.searchParams.delete("year");
+      else next.searchParams.set("year", year);
       next.searchParams.delete("month");
     } else {
-      next.searchParams.set("month", link.dataset.filterMonth ?? "");
+      const month = link.dataset.filterMonth ?? "";
+      if (link.getAttribute("aria-current") === "page") next.searchParams.delete("month");
+      else next.searchParams.set("month", month);
       next.searchParams.delete("year");
     }
     window.history.pushState(null, "", `${next.pathname}${next.search}`);

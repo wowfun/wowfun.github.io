@@ -7,8 +7,10 @@ import { initialiseComments } from "./comments";
 import { initialiseArchiveFilters } from "./archive-filters";
 import { initialisePriorityNavigation } from "./priority-navigation";
 import { initialisePageActions } from "./page-actions";
+import { initialiseCodeBlockCopy } from "./code-block-copy";
 import { initialiseTweets } from "./tweets";
 import { initialiseAnalytics } from "./analytics";
+import { initialiseAutoHideScrollbars } from "./scrollbars";
 
 const DOCS_PAGE_CHANGE_EVENT = "website:docs-page-change";
 let pageFeatureGeneration = 0;
@@ -23,12 +25,14 @@ function initialisePageFeatures(): void {
   const cleanupComments = initialiseComments();
   const cleanupArchiveFilters = initialiseArchiveFilters();
   const cleanupPageActions = initialisePageActions();
+  const cleanupCodeBlockCopy = initialiseCodeBlockCopy();
   const cleanupTweets = initialiseTweets();
   cleanupPageFeatures = () => {
     cleanupOutline();
     cleanupComments();
     cleanupArchiveFilters();
     cleanupPageActions();
+    cleanupCodeBlockCopy();
     cleanupTweets();
   };
 
@@ -82,6 +86,7 @@ export function initialiseWebsite(): void {
   initialiseLanguageSwitcher();
   initialisePriorityNavigation();
   initialiseAnalytics();
+  initialiseAutoHideScrollbars();
   initialisePageFeatures();
   document.addEventListener(DOCS_PAGE_CHANGE_EVENT, initialisePageFeatures);
 

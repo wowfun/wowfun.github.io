@@ -11,31 +11,15 @@
         <a href="{{ blog_url | escape }}">{{ ui.view_all | default: 'View all' | escape }} <span aria-hidden="true">→</span></a>
       </header>
       <div class="minimal-recent__grid">
-        {% for post in recent_posts limit: 6 %}
-          <article class="minimal-post-card{% if post.image or post.image_url %} minimal-post-card--with-image{% endif %}">
-            {% if post.image or post.image_url %}<div class="minimal-post-card__media"><img src="{{ post.image | default: post.image_url | escape }}" alt="" loading="lazy" decoding="async"></div>{% endif %}
-            <div class="minimal-post-card__body">
-              <h3><a href="{{ post.url | escape }}">{{ post.title | escape }}</a></h3>
-              {% if post.subtitle %}<p class="minimal-post-card__subtitle">{{ post.subtitle | escape }}</p>{% endif %}
-              {% if post.summary and post.summary != '' %}<p class="minimal-post-card__excerpt">{{ post.summary | escape }}</p>{% endif %}
-              {% if post.authors.size > 0 or post.published_at %}
-                <footer>
-                  {% if post.authors.size > 0 %}<span>{{ ui.posted_by | default: 'Posted by' | escape }} {% for author in post.authors %}{% if author.url %}<a href="{{ author.url | escape }}">{{ author.name | escape }}</a>{% else %}{{ author.name | escape }}{% endif %}{% unless forloop.last %}, {% endunless %}{% endfor %}{% if post.published_at %} {{ ui.on | default: 'on' | escape }} {% endif %}</span>{% endif %}
-                  {% if post.published_at %}<time datetime="{{ post.published_at | escape }}">{% unless post.authors.size > 0 %}{{ ui.published | default: 'Published' | escape }} {% endunless %}{{ post.published_at | date: "%Y-%m-%d" }}</time>{% endif %}
-                </footer>
-              {% endif %}
-            </div>
-          </article>
-        {% endfor %}
+        {% include website/post-cards.html posts=recent_posts %}
       </div>
     </section>
   {% endif %}
   {% if page.website.theme_data.contacts.size > 0 %}<nav class="minimal-contacts" aria-label="{{ ui.contact | default: 'Contact' | escape }}">{% for contact in page.website.theme_data.contacts %}{% if contact.icon %}<a class="minimal-contact minimal-contact--icon" href="{{ contact.url | escape }}" rel="me" aria-label="{{ contact.label | escape }}" title="{{ contact.label | escape }}">{% include website/contact-icon.html icon=contact.icon %}</a>{% else %}<a class="minimal-contact minimal-contact--text" href="{{ contact.url | escape }}" rel="me">{{ contact.label | escape }}</a>{% endif %}{% endfor %}</nav>{% endif %}
 {% when 'portfolio-index' %}
-  <h1>{{ page.title | default: ui.portfolio | default: 'Portfolio' | escape }}</h1>
-  {% include website/portfolio-grid.html %}
+  {% include website/portfolio-grid.html index=true %}
 {% when 'blog-index' %}
-  <h1>{{ page.title | default: ui.blog | default: 'Blog' | escape }}</h1>
+  <h1 class="visually-hidden">{{ page.title | default: ui.blog | default: 'Blog' | escape }}</h1>
   {% include website/tag-filter.html summaries=page.website.theme_data.topic_summaries total=page.website.theme_data.topic_filter_count %}
 {% when 'tags' %}
   <h1>{{ ui.tags | default: 'Tags' | escape }}</h1>

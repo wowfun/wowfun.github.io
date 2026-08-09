@@ -189,6 +189,30 @@ class JekyllAdapterTest < Minitest::Test
     assert status.success?, "#{stdout}\n#{stderr}"
   end
 
+  def test_indexless_minimal_home_keeps_system_modules_in_the_first_content_row
+    FileUtils.rm(File.join(@temporary_root, "vault", "index.md"))
+    FileUtils.mkdir_p(File.join(@temporary_root, "vault", "blog"))
+    File.write(File.join(@temporary_root, "vault", "blog", "dispatch.md"), <<~MARKDOWN)
+      ---
+      publish: true
+      title: One dispatch
+      date: 2026-07-01
+      tags: [Engineering]
+      ---
+      # One dispatch
+    MARKDOWN
+    install_project_layout
+
+    build_site("website" => website_config.merge("theme" => "minimal")).process
+
+    document = Nokogiri::HTML5.parse(File.read(File.join(destination, "index.html")))
+    recent = document.at_css(".minimal-reading-column .note-content > .minimal-recent")
+    refute_nil recent
+    refute_nil document.at_css(".minimal-home-context")
+    assert_nil document.at_css(".minimal-home-modules")
+    refute_includes document.at_css("main")["class"], "minimal-shell--authored-home"
+  end
+
   def test_real_footer_always_links_to_the_jekyll_obsidian_repository
     install_project_layout
     site = build_site
@@ -259,6 +283,51 @@ class JekyllAdapterTest < Minitest::Test
       assert_includes connected, "data-local-graph-section", theme
       assert_includes connected, 'data-dialog="graph-global"', theme
       assert_includes connected, 'data-dialog="graph-local"', theme
+    end
+  end
+
+  def test_real_themes_render_related_articles_at_the_end_of_the_authored_page
+    File.write(File.join(@temporary_root, "vault", "index.md"), <<~MARKDOWN)
+      ---
+      publish: true
+      title: Integration
+      related:
+        - "[[target|Read next]]"
+      ---
+      # Integration
+      Authored body.
+    MARKDOWN
+    File.write(File.join(@temporary_root, "vault", "target.md"), <<~MARKDOWN)
+      ---
+      publish: true
+      title: Target
+      description: A related page summary.
+      ---
+      # Target
+    MARKDOWN
+    install_project_layout
+
+    %w[minimal docs].each do |theme|
+      themed_destination = File.join(@site_root, "_site-related-#{theme}")
+      config = website_config.merge(
+        "theme" => theme,
+        "features" => { "relations" => false, "graph" => false }
+      )
+      build_site("destination" => themed_destination, "website" => config).process
+
+      document = Nokogiri::HTML5.parse(File.read(File.join(themed_destination, "index.html")))
+      related = document.at_css("nav.related-articles")
+      refute_nil related, theme
+      assert_equal "Related articles", related.at_css("h2")&.text&.strip, theme
+      card = related.at_css("article.minimal-post-card")
+      refute_nil card, theme
+      assert_equal "Read next", card.at_css("h3 a")&.text&.strip, theme
+      assert_equal "/target/", card.at_css("h3 a")&.[]("href"), theme
+      assert_equal "A related page summary.", card.at_css(".minimal-post-card__excerpt")&.text&.strip, theme
+      source_actions = document.at_css(".source-actions")
+      article_children = source_actions.parent.element_children
+      assert_operator article_children.index(source_actions), :<, article_children.index(related), theme
+      assert_nil Nokogiri::HTML5.parse(File.read(File.join(themed_destination, "target", "index.html"))).at_css("nav.related-articles"), theme
     end
   end
 
@@ -343,6 +412,12 @@ class JekyllAdapterTest < Minitest::Test
       date: 2026-07-01
       author:
         - Ada
+      tags:
+        - Engineering
+        - release-notes
+      categories:
+        - Engineering
+        - AI Agent
       ---
       # One dispatch
       A concise dispatch summary from the authored body.
@@ -385,6 +460,26 @@ class JekyllAdapterTest < Minitest::Test
     assert_includes blog, 'class="blog-ledger__meta"'
     assert_includes blog, 'class="blog-ledger__description"'
     assert_includes blog, "A concise dispatch summary from the authored body."
+    blog_document = Nokogiri::HTML5.parse(blog)
+    topics = blog_document.at_css(".blog-ledger__content .blog-ledger__topics")
+    topic_links = topics.css("a[data-topic-filter-option]")
+    assert_equal ["Engineering", "release-notes", "AI Agent"], topic_links.map { |link| link.text.strip }
+    assert_equal [
+      "/blog/?topic=engineering",
+      "/blog/?topic=release-notes",
+      "/blog/?topic=ai-agent"
+    ], topic_links.map { |link| link["href"] }
+    assert_equal "blog-ledger__main", topics.previous_element["class"]
+    assert_nil blog_document.at_css(".blog-ledger__meta .blog-ledger__topics")
+
+    post = Nokogiri::HTML5.parse(File.read(File.join(destination, "blog", "dispatch", "index.html")))
+    topic_links = post.css(".note-meta .tag-chip")
+    assert_equal ["Engineering", "release-notes", "AI Agent"], topic_links.map { |link| link.text.strip }
+    assert_equal [
+      "/blog/?topic=engineering",
+      "/blog/?topic=release-notes",
+      "/blog/?topic=ai-agent"
+    ], topic_links.map { |link| link["href"] }
   end
 
   def test_post_byline_uses_resolved_authors_and_preserves_each_title_owner
@@ -746,7 +841,7 @@ class JekyllAdapterTest < Minitest::Test
     { "minimal" => "首页" }.each do |theme, localized_label|
       build_site("website" => website_config.merge("theme" => theme, "i18n" => i18n)).process
       html = File.read(File.join(destination, "zh-CN", "index.html"))
-      assert_includes html, '<html class="no-js" lang="zh-CN" dir="ltr">', theme
+      assert_includes html, '<html class="no-js" lang="zh-CN" dir="ltr" data-auto-hide-root-scrollbar>', theme
       assert_includes html, "data-language-switcher", theme
       assert_includes html, localized_label, theme
       post = Nokogiri::HTML(File.read(File.join(destination, "zh-CN", "blog", "post", "index.html")))
@@ -768,9 +863,86 @@ class JekyllAdapterTest < Minitest::Test
     ).process
 
     fallback = File.read(File.join(destination, "ar", "index.html"))
-    assert_includes fallback, '<html class="no-js" lang="ar" dir="rtl">'
-    assert_includes fallback, '<header class="note-header" lang="en" dir="ltr">'
-    assert_includes fallback, '<div class="note-content" lang="en" dir="ltr">'
+    document = Nokogiri::HTML5.parse(fallback)
+    assert_equal "ar", document.at_css("html")["lang"]
+    assert_equal "rtl", document.at_css("html")["dir"]
+    assert_equal "en", document.at_css(".note-header")["lang"]
+    assert_equal "ltr", document.at_css(".note-header")["dir"]
+    assert_equal "en", document.at_css(".note-content")["lang"]
+    assert_equal "ltr", document.at_css(".note-content")["dir"]
+  end
+
+  def test_fallback_portfolio_topics_separate_ui_and_content_languages
+    install_project_layout
+    File.write(File.join(@temporary_root, "vault", "_locale.yml"), "name: English\ndir: ltr\n")
+    FileUtils.mkdir_p(File.join(@temporary_root, "vault", "_translations", "ar"))
+    File.write(
+      File.join(@temporary_root, "vault", "_translations", "ar", "_locale.yml"),
+      "name: العربية\ndir: rtl\nmessages:\n  topics: المواضيع\n"
+    )
+    FileUtils.mkdir_p(File.join(@temporary_root, "vault", "portfolio"))
+    File.write(
+      File.join(@temporary_root, "vault", "portfolio", "project.md"),
+      "---\npublish: true\ndescription: Default summary\ncategories: [Rust]\n---\n# Project\n"
+    )
+
+    build_site(
+      "website" => website_config.merge(
+        "theme" => "minimal",
+        "i18n" => { "enabled" => true, "locales" => %w[en ar] }
+      )
+    ).process
+
+    document = Nokogiri::HTML5.parse(
+      File.read(File.join(destination, "ar", "portfolio", "project", "index.html"))
+    )
+    topics = document.at_css(".note-header .minimal-portfolio-card__topics")
+    refute_nil topics
+    assert_equal "المواضيع", topics["aria-label"]
+    assert_equal "ar", topics["lang"]
+    assert_equal "rtl", topics["dir"]
+    topic = topics.at_css("li")
+    assert_equal "Rust", topic.text
+    assert_equal "en", topic["lang"]
+    assert_equal "ltr", topic["dir"]
+    topic_link = topic.at_css("a.tag-chip")
+    refute_nil topic_link
+    assert_equal "/ar/portfolio/?topic=rust", topic_link["href"]
+  end
+
+  def test_fallback_blog_topics_separate_ui_and_content_languages
+    install_project_layout
+    File.write(File.join(@temporary_root, "vault", "_locale.yml"), "name: English\ndir: ltr\n")
+    FileUtils.mkdir_p(File.join(@temporary_root, "vault", "_translations", "ar"))
+    File.write(
+      File.join(@temporary_root, "vault", "_translations", "ar", "_locale.yml"),
+      "name: العربية\ndir: rtl\nmessages:\n  topics: المواضيع\n"
+    )
+    FileUtils.mkdir_p(File.join(@temporary_root, "vault", "blog"))
+    File.write(
+      File.join(@temporary_root, "vault", "blog", "post.md"),
+      "---\npublish: true\ncontent_type: post\ndate: 2026-08-01\ncategories: [Architecture]\n---\n# Post\n"
+    )
+
+    build_site(
+      "website" => website_config.merge(
+        "theme" => "minimal",
+        "i18n" => { "enabled" => true, "locales" => %w[en ar] }
+      )
+    ).process
+
+    document = Nokogiri::HTML5.parse(
+      File.read(File.join(destination, "ar", "blog", "post", "index.html"))
+    )
+    topics = document.at_css(".note-header .note-meta__topics")
+    refute_nil topics
+    assert_equal "المواضيع", topics["aria-label"]
+    assert_equal "ar", topics["lang"]
+    assert_equal "rtl", topics["dir"]
+    topic = topics.at_css("a")
+    assert_equal "Architecture", topic.text
+    assert_equal "en", topic["lang"]
+    assert_equal "ltr", topic["dir"]
   end
 
   def test_reader_rejects_public_symlink_that_resolves_into_private_vault_content
