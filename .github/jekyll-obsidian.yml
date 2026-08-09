@@ -21,9 +21,7 @@ website:
       doc: []
   features: {}
   contacts:
-    - label: GitHub
+    - label: GitHub Profile
       url: https://github.com/wowfun
-    - label: Twitter
-      url: https://twitter.com/wowfuna
-    - label: Email
-      url: mailto:haggi.cho@outlook.com
+    - label: X
+      url: https://x.com/wowfuna
