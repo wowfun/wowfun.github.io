@@ -30,3 +30,11 @@ website:
     locales:
       - en
       - zh-CN
+  comments:
+    enabled: true
+    repository_id: MDEwOlJlcG9zaXRvcnkxOTEwNzE1MDY
+    category: Blog comments
+    category_id: DIC_kwDOC2OFEs4DDHmy
+  analytics:
+    provider: cloudflare
+    token: 39256861462445f681576be582afd9e4
