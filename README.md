@@ -4,31 +4,38 @@ Personal writing published from Markdown with the `minimal` theme from
 [jekyll-obsidian](https://github.com/wowfun/jekyll-obsidian).
 
 - Authored content lives in `content/`.
-- The replaceable publishing workspace lives in `website/`.
-- Host configuration lives in `.github/jekyll-obsidian.yml`.
+- Site configuration lives in `.github/jekyll-obsidian.yml`.
+- `Gemfile` and `Gemfile.lock` pin the published `jekyll-obsidian-site` gem.
 
 ## Local development
 
-```sh
-website/bin/setup
-website/bin/dev
-```
-
-Run the same checks used by the generated Pages workflow with:
+Install Ruby 4.0.x, Bundler and Git. On Windows, use RubyInstaller with Devkit
+for native gem dependencies.
 
 ```sh
-(cd website && npx playwright install chromium)
-website/bin/integrate --check
-RUN_BROWSER_TESTS=1 website/bin/test
-JEKYLL_ENV=production website/bin/build \
-  --url https://sinputer.top \
-  --baseurl "" \
-  --destination _site-production
+bundle install
+bundle exec jekyll-obsidian dev
 ```
 
-## Publishing
+The preview is at `http://127.0.0.1:58000/`. Build and audit the production site with:
 
-`.github/workflows/pages.yml` verifies and deploys the site through GitHub
-Actions. The custom domain is managed in GitHub Pages settings; this repository
-does not publish a legacy `CNAME`, service worker, web app manifest, or offline
-fallback.
+```sh
+bundle exec jekyll-obsidian build
+```
+
+Output is written to `.jekyll-obsidian-cache/site/`. The gem includes compiled
+frontend assets, so site builds do not need Node.js or a copied theme workspace.
+
+The home page shows the authored introduction and recent posts. Blog entries
+are grouped by year. Portfolio, Dao and Favorites remain authored collections;
+the browser-local favorites feature is disabled to preserve the Favorites route.
+
+## Publishing and upgrades
+
+`.github/workflows/pages.yml` builds with the versioned Jekyll Obsidian Action
+and deploys that verified artifact to GitHub Pages. The custom domain is managed
+in GitHub Pages settings.
+
+To upgrade, change the exact gem version in `Gemfile` and the matching Action
+tag in the workflow, run `bundle update jekyll-obsidian-site`, and commit the
+lockfile. Keep both Windows and Linux platforms in the lockfile.
