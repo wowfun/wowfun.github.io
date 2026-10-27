@@ -10,6 +10,16 @@ website:
   syntax_profile: ofm@1
   repository: wowfun/wowfun.github.io
   edit_branch: master
+  footer:
+    links:
+      - label: Jekyll Obsidian
+        url: https://sinputer.top/jekyll-obsidian/
+        locale_urls:
+          zh-CN: https://sinputer.top/jekyll-obsidian/zh-CN/
+      - label: Feedgarden
+        url: https://sinputer.top/feedgarden/
+        locale_urls:
+          zh-CN: https://sinputer.top/feedgarden/zh-CN/
   content:
     publish_by_default:
       - "."
